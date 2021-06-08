@@ -1,4 +1,7 @@
+from selenium.webdriver import Firefox
+from selenium.webdriver.firefox.options import Options
 from lcu_driver import Connector
+from urllib import parse
 
 
 def get_lockfile():
@@ -12,7 +15,7 @@ def get_lockfile():
     return None
 
 
-connector = Connector(get_lockfile())
+connector = Connector(str=get_lockfile())
 
 
 @connector.ready
@@ -20,10 +23,22 @@ async def connect(connection):
     print('LCU API is ready to be used.')
 
 
-@connector.ws.register('/lol-summoner/v1/summoners/', event_types=('UPDATE',))
-async def icon_changed(connection, event):
-    print(f'The summoner {event.data["displayName"]} was updated.')
-
+@connector.ws.register('/lol-champ-select/v1/session', event_types=('CREATE',))
+async def get_team_members(connection, event):
+    summoner_ids = []
+    summoner_names = []
+    for i in event.data["myTeam"]:
+        summoner_ids.append(i["summonerId"])
+    params = {'ids': summoner_ids}
+    request = '/lol-summoner/v2/summoner-names?' + parse.urlencode(params, False)
+    summoner_names_json = await connection.request('get', request)
+    for i in summoner_names_json:
+        summoner_names.append(i["displayName"])
+    browser = Firefox()
+    browser.get('https://na.op.gg/')
+    search = browser.find_element_by_class_name('summoner-search-form_text')
+    search.send_keys(', '.join(summoner_names))
+    search.submit()
 
 @connector.close
 async def disconnect(connection):

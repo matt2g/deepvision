@@ -15,12 +15,13 @@ def get_lockfile():
     return None
 
 
-connector = Connector(str=get_lockfile())
+connector = Connector()
 
 
 @connector.ready
 async def connect(connection):
     print('LCU API is ready to be used.')
+
 
 @connector.ws.register('/lol-champ-select/v1/session', event_types=('CREATE',))
 async def get_team_members(connection, event):
@@ -38,6 +39,7 @@ async def get_team_members(connection, event):
     search = browser.find_element_by_class_name('summoner-search-form__text')
     search.send_keys(', '.join(summoner_names))
     search.submit()
+
 
 @connector.close
 async def disconnect(connection):

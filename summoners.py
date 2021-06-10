@@ -4,29 +4,40 @@ from scraper import get_best_perks
 
 
 class Summoner:
-    def __init__(self, summonerId, cellId, assignedPosition=None):
+    def __init__(self, summonerId, cellId=None, assignedPosition=None):
         self.summonerId = summonerId
+        self.cellId = cellId
+        self.assignedPosition = assignedPosition
         self.displayName = None
         self.internalName = None
         self.puuid = None
-        self.cellId = cellId
-        self.assignedPosition = assignedPosition
         self.current = False
+
+    async def get_info(self, connection):
+        summoner = await connection.request('GET', '/lol-summoner/v1/current-summoner')
+        data = await summoner.json()
+        self.displayName = data['displayName']
+        self.internalName = data['internalName']
+        self.puuid = data['puuid']
+
 
     def update_current(self):
         self.current = True
 
-    def return_id(self):
-        return self.summonerId
-
-    def cellid(self):
+    def return_cellid(self):
         return self.cellId
 
-    def current(self):
+    def return_current(self):
         return self.current
 
     def return_summoner_id(self):
         return self.summonerId
+
+    def return_display_name(self):
+        return self.displayName
+
+    def return_puuid(self):
+        return self.puuid
 
 
 class Runepage:
@@ -74,7 +85,7 @@ class Perk:
         self.img_url = self.get_img()
 
     def create_rune_key(self):
-        f = open('dragontail-11.12.1/11.12.1/data/en_US/runesReforged.json', )
+        f = open('dragontail-11.12.1/11.12.1/data/en_US/runesReforged.json', 'rb')
         rune_data = json.load(f)
         runes_dict = {}
         for tree in rune_data:

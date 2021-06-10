@@ -2,8 +2,15 @@ from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options
 from lcu_driver import Connector
 from urllib import parse
-import pprint
-from summoners import Summoner
+import json, os
+from summoners import Summoner, Runepage
+
+
+t = open('dragontail-11.12.1/11.12.1/data/en_US/champion.json', 'rb')
+champ_data = json.load(t)
+champ_dict = {}
+for champ in champ_data['data']:
+    champ_dict[champ_data['data'][champ]['key']] = champ
 
 
 def get_lockfile():
@@ -16,22 +23,24 @@ def get_lockfile():
         return text
     return None
 
-
 summoners = []
-connector = Connector(str=get_lockfile())
+connector = Connector()
 
 
 @connector.ready
 async def connect(connection):
     print('LCU API is ready to be used.')
-    current_summoner = await connection.request('get', '/lol-summoner/v1/current-summoner')
-    current_summoner_json = await current_summoner.json()
-    current_id = current_summoner_json["summonerId"]
-    print(current_id)
+    summoner = await connection.request('GET', '/lol-summoner/v1/current-summoner')
+    data = await summoner.json()
+    me = Summoner(data["summonerId"])
+    await me.get_info(connection)
+    print(me.return_display_name(), me.return_puuid())
+
 
 @connector.ws.register('/lol-champ-select/v1/session', event_types=('CREATE',))
 async def get_team_members(connection, event):
     global summoners
+    summoners = []
     summoner_ids = []
     summoner_names = []
     for i in event.data["myTeam"]:
@@ -66,8 +75,15 @@ async def get_selection(connection, event):
         for summoner in summoners:
             if summoner.return_summoner_id() == current_id:
                 for item in action:
-                    if item['actorCellId'] == summoner.cellid():
-                        print(item)
+                    if item['actorCellId'] == summoner.return_cellid() and item['isInProgress'] == False:
+                        selected_champ_id = str(item['championId'])
+                        selected_champ = champ_dict[selected_champ_id]
+                        runepage = Runepage(selected_champ)
+                        print(runepage.print_perks(), runepage.print_frag())
+                        continue
+    print('test')
+
+
 
 
 

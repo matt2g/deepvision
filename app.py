@@ -30,11 +30,6 @@ connector = Connector()
 @connector.ready
 async def connect(connection):
     print('LCU API is ready to be used.')
-    summoner = await connection.request('GET', '/lol-summoner/v1/current-summoner')
-    data = await summoner.json()
-    me = Summoner(data["summonerId"])
-    await me.get_info(connection)
-    print(me.return_display_name(), me.return_puuid())
 
 
 @connector.ws.register('/lol-champ-select/v1/session', event_types=('CREATE',))

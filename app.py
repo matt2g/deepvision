@@ -2,6 +2,8 @@ from selenium.webdriver import Firefox
 from selenium.webdriver.firefox.options import Options
 from lcu_driver import Connector
 from urllib import parse
+import pprint
+from summoners import Summoner
 
 
 def get_lockfile():
@@ -15,20 +17,26 @@ def get_lockfile():
     return None
 
 
+summoners = []
 connector = Connector(str=get_lockfile())
 
 
 @connector.ready
 async def connect(connection):
     print('LCU API is ready to be used.')
-
+    current_summoner = await connection.request('get', '/lol-summoner/v1/current-summoner')
+    current_summoner_json = await current_summoner.json()
+    current_id = current_summoner_json["summonerId"]
+    print(current_id)
 
 @connector.ws.register('/lol-champ-select/v1/session', event_types=('CREATE',))
 async def get_team_members(connection, event):
+    global summoners
     summoner_ids = []
     summoner_names = []
     for i in event.data["myTeam"]:
         summoner_ids.append(i["summonerId"])
+        summoners.append(Summoner(i["summonerId"], i['cellId'], i['assignedPosition']))
     params = {'ids': summoner_ids}
     request = '/lol-summoner/v2/summoner-names?' + parse.urlencode(params, False)
     summoner_names_json = await connection.request('get', request)
@@ -39,6 +47,28 @@ async def get_team_members(connection, event):
     search = browser.find_element_by_class_name('summoner-search-form__text')
     search.send_keys(', '.join(summoner_names))
     search.submit()
+    current_summoner = await connection.request('get', '/lol-summoner/v1/current-summoner')
+    current_summoner_json = await current_summoner.json()
+    current_id = current_summoner_json["summonerId"]
+
+    for summoner in summoners:
+        if summoner.return_summoner_id() == current_id:
+            summoner.update_current()
+
+
+@connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
+async def get_selection(connection, event):
+    global summoners
+    current_summoner = await connection.request('get', '/lol-summoner/v1/current-summoner')
+    current_summoner_json = await current_summoner.json()
+    current_id = current_summoner_json["summonerId"]
+    for action in event.data['actions']:
+        for summoner in summoners:
+            if summoner.return_summoner_id() == current_id:
+                for item in action:
+                    if item['actorCellId'] == summoner.cellid():
+                        print(item)
+
 
 
 @connector.close

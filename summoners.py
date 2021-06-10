@@ -4,18 +4,29 @@ from scraper import get_best_perks
 
 
 class Summoner:
-    def __init__(self, summonerId):
+    def __init__(self, summonerId, cellId, assignedPosition=None):
         self.summonerId = summonerId
         self.displayName = None
         self.internalName = None
         self.puuid = None
+        self.cellId = cellId
+        self.assignedPosition = assignedPosition
+        self.current = False
 
-    async def initialize_summoner(self, connection):
-        summoner_info = await connection.request('get', 'lol-summoner/v1/summoners/' + self.summonerId)
-        summoner_json = await summoner_info.json()
-        self.displayName = summoner_json["displayName"]
-        self.internalName = summoner_json["internalName"]
-        self.puuid = summoner_json["puuid"]
+    def update_current(self):
+        self.current = True
+
+    def return_id(self):
+        return self.summonerId
+
+    def cellid(self):
+        return self.cellId
+
+    def current(self):
+        return self.current
+
+    def return_summoner_id(self):
+        return self.summonerId
 
 
 class Runepage:
@@ -37,6 +48,12 @@ class Runepage:
         perk_names = []
         for perk in self.perks:
             perk_names.append(perk.print_perk_name())
+        return perk_names
+
+    def print_perks_ids(self):
+        perk_names = []
+        for perk in self.perks:
+            perk_names.append(perk.print_perk_id())
         return perk_names
 
     def print_frag(self):
@@ -91,8 +108,3 @@ class Frag:
 
     def print_frag(self):
         return self.frag
-
-
-t = Runepage("Tryndamere")
-print(t.print_perks())
-print(t.print_frag())

@@ -15,7 +15,7 @@ def get_lockfile():
     return None
 
 
-connector = Connector()
+connector = Connector(str=get_lockfile())
 
 
 @connector.ready

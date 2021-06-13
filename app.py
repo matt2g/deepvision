@@ -1,7 +1,6 @@
 from lcu_driver import Connector
 from summoners import Game
 from configparser import ConfigParser
-import pprint as pp
 
 config_object = ConfigParser()
 config_object.read('config.ini')

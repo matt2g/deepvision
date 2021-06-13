@@ -19,7 +19,10 @@ def get_lockfile():
     return None
 
 
-connector = Connector(str=get_lockfile())
+if get_lockfile() is None:
+    connector = Connector()
+else:
+    connector = Connector(str=get_lockfile())
 game = Game()
 
 

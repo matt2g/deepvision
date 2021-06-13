@@ -1,8 +1,5 @@
 import json, re
 from selenium.webdriver import Firefox
-from selenium.webdriver.firefox.options import Options
-from lcu_driver import Connector
-import aiohttp
 from scraper import get_best_perks
 
 runes_dict = {}
@@ -82,9 +79,9 @@ class Game:
         self.championId = str(championId)
 
     def get_runes(self, event):
-        if self.lockedIn != True and self.cellId is not None:
+        if self.lockedIn is not True and self.cellId is not None:
             self.determine_game_status(event)
-        if self.got_runes != True and self.lockedIn == True:
+        if self.got_runes is not True and self.lockedIn:
             self.got_runes = True
             runes = Runepage(self.get_my_champ(self.championId))
             return runes.print_perks_ids()

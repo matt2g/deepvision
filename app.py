@@ -1,12 +1,16 @@
-import asyncio
 from lcu_driver import Connector
-import json, os
 from summoners import Game
+from configparser import ConfigParser
+import pprint as pp
+
+config_object = ConfigParser()
+config_object.read('config.ini')
+client_info = config_object["CLIENT"]
 
 
 def get_lockfile():
     import os
-    path = os.path.join('/home/matt/Games/league-of-legends/drive_c/Riot Games/League of Legends/', 'lockfile')
+    path = os.path.join(client_info['installation_path'], 'lockfile')
     if os.path.isfile(path):
         file = open(path, 'r')
         text = file.readline()

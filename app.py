@@ -1,9 +1,7 @@
 import asyncio
-
 from lcu_driver import Connector
-from urllib import parse
 import json, os
-from summoners import Summoner, Runepage, Game
+from summoners import Game
 
 
 def get_lockfile():

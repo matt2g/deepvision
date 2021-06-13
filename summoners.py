@@ -5,9 +5,28 @@ from lcu_driver import Connector
 import aiohttp
 from scraper import get_best_perks
 
+runes_dict = {}
+champ_dict = {}
+
+
+def create_dictionaries():
+    with open('dragontail-11.12.1/11.12.1/data/en_US/runesReforged.json', 'rb') as f:
+        rune_data = json.load(f)
+    for tree in rune_data:
+        for slots in tree['slots']:
+            for runes in slots['runes']:
+                key = runes['key'].lower()
+                runes_dict[key] = [runes['id'], runes['icon'], tree['id']]
+    with open('dragontail-11.12.1/11.12.1/data/en_US/champion.json', 'rb') as f:
+        champ_data = json.load(f)
+    for champ in champ_data['data']:
+        champ_dict[champ_data['data'][champ]['key']] = champ
+
 
 class Game:
     def __init__(self):
+        create_dictionaries()
+        self.champ_dict = champ_dict
         self.myTeam = None
         self.mySummoner = None
         self.lockedIn = False
@@ -71,14 +90,8 @@ class Game:
             return runes.print_perks_ids()
         pass
 
-    @staticmethod
-    def get_my_champ(championId: str):
-        with open('dragontail-11.12.1/11.12.1/data/en_US/champion.json', 'rb') as f:
-            champ_data = json.load(f)
-        champ_dict = {}
-        for champ in champ_data['data']:
-            champ_dict[champ_data['data'][champ]['key']] = champ
-        return champ_dict[championId]
+    def get_my_champ(self, championId: str):
+        return self.champ_dict[championId]
 
     def get_op_gg_info(self):
         summoner_names = []
@@ -142,6 +155,7 @@ class Game:
         for page in pages_json:
             page_sum += 1
         return page_sum, pages_json[0]['id']
+
 
 class Summoner:
     def __init__(self, connection, summonerId, cellId=None, assignedPosition=None):
@@ -238,23 +252,11 @@ class Runepage:
 
 class Perk:
     def __init__(self, perk):
-        self.rune_key = self.create_rune_key()
+        self.rune_key = runes_dict
         self.perk = perk
         self.tree_id = None
         self.id = self.get_perk_id()
         self.img_url = self.get_img()
-
-    @staticmethod
-    def create_rune_key():
-        with open('dragontail-11.12.1/11.12.1/data/en_US/runesReforged.json', 'rb') as f:
-            rune_data = json.load(f)
-            runes_dict = {}
-        for tree in rune_data:
-            for slots in tree['slots']:
-                for runes in slots['runes']:
-                    key = runes['key'].lower()
-                    runes_dict[key] = [runes['id'], runes['icon'], tree['id']]
-        return runes_dict
 
     def get_perk_id(self):
         name = "".join(re.findall(r'[a-zA-Z]+', self.perk))

@@ -1,14 +1,9 @@
+import asyncio
+
 from lcu_driver import Connector
 from urllib import parse
 import json, os
 from summoners import Summoner, Runepage, Game
-
-with open('dragontail-11.12.1/11.12.1/data/en_US/champion.json', 'rb') as f:
-    champ_data = json.load(f)
-    champ_dict = {}
-
-for champ in champ_data['data']:
-    champ_dict[champ_data['data'][champ]['key']] = champ
 
 
 def get_lockfile():
@@ -22,7 +17,6 @@ def get_lockfile():
     return None
 
 
-summoners = []
 connector = Connector(str=get_lockfile())
 game = Game()
 
@@ -35,11 +29,15 @@ async def connect(connection):
 @connector.ws.register('/lol-champ-select/v1/session', event_types=('CREATE',))
 async def create_game(connection, event):
     await game.create_game(connection)
-    # await game.get_op_gg_info()
+    game.get_op_gg_info()
 
-@connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
-async def get_selection(connection, event):
-    print(event.data)
+    @connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
+    async def updated_rune_page(connection, event2):
+        runes = game.get_runes(event2.data)
+        if runes is not None:
+            perks, primaryStyleId, subStyleId = runes
+            await game.update_perks(connection, perks, 'deepvision', primaryStyleId, subStyleId)
+
 
 @connector.close
 async def disconnect(connection):

@@ -4,12 +4,12 @@ import requests, re
 
 def get_best_perks(champion, position=None):
     frag_image_urls = {
-        '//opgg-static.akamaized.net/images/lol/perkShard/5008.png' : 'adaptiveforce',
-        '//opgg-static.akamaized.net/images/lol/perkShard/5002.png' : 'armor',
-        '//opgg-static.akamaized.net/images/lol/perkShard/5005.png' : 'attackspeed',
-        '//opgg-static.akamaized.net/images/lol/perkShard/5007.png' : 'cdrscaling',
-        '//opgg-static.akamaized.net/images/lol/perkShard/5001.png' : 'healthscaling',
-        '//opgg-static.akamaized.net/images/lol/perkShard/5003.png' : 'magicres'
+        '//opgg-static.akamaized.net/images/lol/perkShard/5008.png': 'adaptiveforce',
+        '//opgg-static.akamaized.net/images/lol/perkShard/5002.png': 'armor',
+        '//opgg-static.akamaized.net/images/lol/perkShard/5005.png': 'attackspeed',
+        '//opgg-static.akamaized.net/images/lol/perkShard/5007.png': 'cdrscaling',
+        '//opgg-static.akamaized.net/images/lol/perkShard/5001.png': 'healthscaling',
+        '//opgg-static.akamaized.net/images/lol/perkShard/5003.png': 'magicres'
     }
     if position is not None:
         source = requests.get('https://na.op.gg/champion/' + champion.lower() + '/statistics/' + position).text

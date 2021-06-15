@@ -7,7 +7,7 @@ config_object.read('config.ini')
 client_info = config_object["CLIENT"]
 
 
-def get_lockfile():
+def get_lockfile_for_linux():
     import os
     path = os.path.join(client_info['installation_path'], 'lockfile')
     if os.path.isfile(path):
@@ -19,10 +19,10 @@ def get_lockfile():
 
 
 def app():
-    if get_lockfile() is None:
+    if get_lockfile_for_linux() is None:
         connector = Connector()
     else:
-        connector = Connector(str=get_lockfile())
+        connector = Connector(str=get_lockfile_for_linux())
     game = Game()
 
     @connector.ready

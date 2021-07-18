@@ -66,26 +66,27 @@ class Game:
     def monitor_game_status(self, event):
         for actions in event['actions']:
             for item in actions:
-                for summoner in self.myTeam:
-                    if item['actorCellId'] == summoner.return_cell_id() and item['completed'] and item['type'] == 'pick':
-                        summoner.update_locked_in()
-                        summoner.set_champion_id(item['championId'])
-                        self.lockedIn.append(summoner)
-                        self.myTeam.remove(summoner)
-                        if summoner.return_current():
-                            self.get_runes(summoner)
-                        if not summoner.return_current():
-                            wins, losses = summoner.return_summoner_champ_stats()
-                            print(f"{summoner.return_display_name()}'s Total Win/Loses")
-                            print(f'{wins}W, {losses}L')
-                            print()
-                        break
-                    else:
-                        pass
+                if item['completed'] and item['type'] == 'pick':
+                    for summoner in self.myTeam:
+                        if item['actorCellId'] == summoner.return_cell_id():
+                            summoner.update_locked_in()
+                            summoner.set_champion_id(item['championId'])
+                            self.lockedIn.append(summoner)
+                            self.myTeam.remove(summoner)
+                            if summoner.return_current():
+                                self.get_runes(summoner)
+                            if not summoner.return_current():
+                                wins, losses = summoner.return_summoner_champ_stats()
+                                print(f"{summoner.return_display_name()}'s Total Win/Loses")
+                                print(f'{wins}W, {losses}L')
+                                print()
+                            break
+                        else:
+                            pass
 
     def get_runes(self, summoner):
         self.got_runes = True
-        runes = Runepage(summoner.return_champion_name())
+        runes = RunePage(summoner.return_champion_name())
         return runes.print_perks_ids()
 
     def get_op_gg_info(self):
@@ -223,7 +224,8 @@ class Summoner:
         wins, losses = get_selected_champ_info(self.champion, self.displayName, self.summonerId)
         return wins, losses
 
-class Runepage:
+
+class RunePage:
     def __init__(self, champion, position=None):
         self.champion = champion
         self.position = position

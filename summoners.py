@@ -1,6 +1,6 @@
 import json, re
 from selenium.webdriver import Firefox
-from scraper import get_best_perks
+from scraper import get_best_perks, get_selected_champ_info
 
 runes_dict = {}
 champ_dict = {}
@@ -23,20 +23,17 @@ def create_dictionaries():
 class Game:
     def __init__(self):
         create_dictionaries()
-        self.champ_dict = champ_dict
         self.myTeam = None
         self.mySummoner = None
-        self.lockedIn = False
-        self.championId = None
+        self.lockedIn = []
         self.got_runes = False
-        self.cellId = None
 
     async def create_game(self, connection):
         self.myTeam = await self.get_summoners(connection)
         self.mySummoner = await self.get_me(connection)
-        self.lockedIn = False
+        self.lockedIn = []
         self.got_runes = False
-        self.get_my_cell_id()
+        self.get_current_player()
 
     @staticmethod
     async def get_summoners(connection):
@@ -61,34 +58,31 @@ class Game:
         else:
             return
 
-    def get_my_cell_id(self):
+    def get_current_player(self):
         for summoner in self.myTeam:
             if summoner.return_summoner_id() == self.mySummoner.return_summoner_id():
-                self.cellId = summoner.return_cell_id()
+                summoner.update_current()
 
-    def determine_game_status(self, event):
+    def monitor_game_status(self, event):
         for actions in event['actions']:
             for item in actions:
-                if item['actorCellId'] == self.cellId and item['completed'] and item['type'] == 'pick':
-                    self.update_locked_in()
-                    self.set_champion_id(item['championId'])
-        else:
-            pass
+                for summoner in self.myTeam:
+                    if item['actorCellId'] == summoner.return_cell_id() and item['completed'] and item['type'] == 'pick':
+                        summoner.update_locked_in()
+                        summoner.set_champion_id(item['championId'])
+                        self.lockedIn.append(summoner)
+                        self.myTeam.remove(summoner)
+                        if summoner.return_current():
+                            self.get_runes(summoner)
 
-    def set_champion_id(self, championId):
-        self.championId = str(championId)
+                        break
+                    else:
+                        pass
 
-    def get_runes(self, event):
-        if self.lockedIn is not True and self.cellId is not None:
-            self.determine_game_status(event)
-        if self.got_runes is not True and self.lockedIn:
-            self.got_runes = True
-            runes = Runepage(self.get_my_champ(self.championId))
-            return runes.print_perks_ids()
-        pass
-
-    def get_my_champ(self, championId: str):
-        return self.champ_dict[championId]
+    def get_runes(self, summoner):
+        self.got_runes = True
+        runes = Runepage(summoner.return_champion_name())
+        return runes.print_perks_ids()
 
     def get_op_gg_info(self):
         summoner_names = []
@@ -102,12 +96,6 @@ class Game:
 
     def return_my_team(self):
         return self.myTeam
-
-    def update_locked_in(self):
-        if self.lockedIn is False:
-            self.lockedIn = True
-        else:
-            self.lockedIn = False
 
     def return_my_summoner(self):
         return self.mySummoner
@@ -156,6 +144,7 @@ class Game:
 
 class Summoner:
     def __init__(self, connection, summonerId, cellId=None, assignedPosition=None):
+        self.champ_dict = champ_dict
         self.summonerId = summonerId
         self.cellId = cellId
         self.assignedPosition = assignedPosition
@@ -163,6 +152,9 @@ class Summoner:
         self.internalName = None
         self.puuid = None
         self.current = False
+        self.lockedIn = False
+        self.championId = None
+        self.champion = None
 
     @classmethod
     async def create_summoner(cls, connection, summonerId, cellId=None, assignedPosition=None):
@@ -177,11 +169,26 @@ class Summoner:
         self.internalName = data['internalName']
         self.puuid = data['puuid']
 
+    def update_locked_in(self):
+        if self.lockedIn is False:
+            self.lockedIn = True
+        else:
+            self.lockedIn = False
+
+    def return_locked_in(self):
+        return self.lockedIn
+
     def update_current(self):
         if self.current is False:
             self.current = True
         else:
             self.current = False
+
+    def set_assignedPosition(self, assignedPosition):
+        self.assignedPosition = assignedPosition
+
+    def return_assignedPosition(self):
+        return self.assignedPosition
 
     def set_cell_id(self, cellId):
         self.cellId = cellId
@@ -200,6 +207,13 @@ class Summoner:
 
     def return_puuid(self):
         return self.puuid
+
+    def set_champion_id(self, championId):
+        self.championId = str(championId)
+        self.champion = self.champ_dict[self.championId]
+
+    def return_champion_name(self):
+        return str(self.champion.lower())
 
 
 class Runepage:

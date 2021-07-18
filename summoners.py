@@ -80,12 +80,8 @@ class Game:
                                         perks, primaryStyleId, subStyleId = runes
                                         await self.update_perks(connection, perks, 'deepvision', primaryStyleId,
                                                                 subStyleId)
-
                                 if not summoner.return_current():
-                                    wins, losses = summoner.return_summoner_champ_stats()
-                                    print(f"{summoner.return_display_name()}'s Total Win/Loses")
-                                    print(f'{wins}W, {losses}L')
-                                    print()
+                                    return summoner.return_summoner_champ_stats()
                                 break
                             else:
                                 pass

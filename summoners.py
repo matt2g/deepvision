@@ -64,30 +64,31 @@ class Game:
                 summoner.update_current()
 
     def monitor_game_status(self, connection, event):
-        for actions in event['actions']:
-            for item in actions:
-                if item['completed'] and item['type'] == 'pick':
-                    for summoner in self.myTeam:
-                        if item['actorCellId'] == summoner.return_cell_id():
-                            summoner.update_locked_in()
-                            summoner.set_champion_id(item['championId'])
-                            self.lockedIn.append(summoner)
-                            self.myTeam.remove(summoner)
-                            if summoner.return_current():
-                                runes = self.get_runes(summoner)
-                                if runes is not None:
-                                    perks, primaryStyleId, subStyleId = runes
-                                    await self.update_perks(connection, perks, 'deepvision', primaryStyleId,
-                                                            subStyleId)
+        if len(self.myTeam) > 0:
+            for actions in event['actions']:
+                for item in actions:
+                    if item['completed'] and item['type'] == 'pick':
+                        for summoner in self.myTeam:
+                            if item['actorCellId'] == summoner.return_cell_id():
+                                summoner.update_locked_in()
+                                summoner.set_champion_id(item['championId'])
+                                self.lockedIn.append(summoner)
+                                self.myTeam.remove(summoner)
+                                if summoner.return_current():
+                                    runes = self.get_runes(summoner)
+                                    if runes is not None:
+                                        perks, primaryStyleId, subStyleId = runes
+                                        await self.update_perks(connection, perks, 'deepvision', primaryStyleId,
+                                                                subStyleId)
 
-                            if not summoner.return_current():
-                                wins, losses = summoner.return_summoner_champ_stats()
-                                print(f"{summoner.return_display_name()}'s Total Win/Loses")
-                                print(f'{wins}W, {losses}L')
-                                print()
-                            break
-                        else:
-                            pass
+                                if not summoner.return_current():
+                                    wins, losses = summoner.return_summoner_champ_stats()
+                                    print(f"{summoner.return_display_name()}'s Total Win/Loses")
+                                    print(f'{wins}W, {losses}L')
+                                    print()
+                                break
+                            else:
+                                pass
 
     def get_runes(self, summoner):
         self.got_runes = True

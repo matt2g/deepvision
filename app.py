@@ -36,15 +36,12 @@ def app():
 
         @connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
         async def updated_rune_page(connection2, event2):
-            runes = game.get_runes(event2.data)
-            if runes is not None:
-                perks, primaryStyleId, subStyleId = runes
-                await game.update_perks(connection2, perks, 'deepvision', primaryStyleId, subStyleId)
+            await game.monitor_game_status(connection2, event2)
 
-    @connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
-    async def connection(connection, event):
-        data = await event.json()
-        print(data)
+    # @connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
+    # async def connection(connection, event):
+    #     data = await event.json()
+    #     print(data)
 
     @connector.close
     async def disconnect(connection):

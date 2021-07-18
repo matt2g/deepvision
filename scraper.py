@@ -66,7 +66,4 @@ def get_selected_champ_info(champion, summoner_name, summonerId):
                     total_losses += int(reg_numbers.findall(losses.text)[0])
                 print()
                 break
-    print('Total Win/Loss')
-    print(f'{total_wins}W')
-    print(f'{total_losses}L')
-    print()
+    return total_wins, total_losses

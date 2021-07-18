@@ -74,7 +74,11 @@ class Game:
                         self.myTeam.remove(summoner)
                         if summoner.return_current():
                             self.get_runes(summoner)
-
+                        if not summoner.return_current():
+                            wins, losses = summoner.return_summoner_champ_stats()
+                            print(f"{summoner.return_display_name()}'s Total Win/Loses")
+                            print(f'{wins}W, {losses}L')
+                            print()
                         break
                     else:
                         pass
@@ -215,6 +219,9 @@ class Summoner:
     def return_champion_name(self):
         return str(self.champion.lower())
 
+    def return_summoner_champ_stats(self):
+        wins, losses = get_selected_champ_info(self.champion, self.displayName, self.summonerId)
+        return wins, losses
 
 class Runepage:
     def __init__(self, champion, position=None):

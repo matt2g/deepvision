@@ -63,7 +63,7 @@ class Game:
             if summoner.return_summoner_id() == self.mySummoner.return_summoner_id():
                 summoner.update_current()
 
-    def monitor_game_status(self, event):
+    def monitor_game_status(self, connection, event):
         for actions in event['actions']:
             for item in actions:
                 if item['completed'] and item['type'] == 'pick':
@@ -74,7 +74,12 @@ class Game:
                             self.lockedIn.append(summoner)
                             self.myTeam.remove(summoner)
                             if summoner.return_current():
-                                self.get_runes(summoner)
+                                runes = self.get_runes(summoner)
+                                if runes is not None:
+                                    perks, primaryStyleId, subStyleId = runes
+                                    await self.update_perks(connection, perks, 'deepvision', primaryStyleId,
+                                                            subStyleId)
+
                             if not summoner.return_current():
                                 wins, losses = summoner.return_summoner_champ_stats()
                                 print(f"{summoner.return_display_name()}'s Total Win/Loses")

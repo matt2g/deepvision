@@ -1,3 +1,5 @@
+import pprint
+
 from lcu_driver import Connector
 from summoners import Game
 from configparser import ConfigParser
@@ -38,10 +40,10 @@ def app():
         async def updated_rune_page(connection2, event2):
             await game.monitor_game_status(connection2, event2)
 
-    # @connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
-    # async def connection(connection, event):
-    #     data = await event.json()
-    #     print(data)
+    @connector.ws.register('/lol-champ-select/v1/session', event_types=('UPDATE',))
+    async def connection(connection, event):
+        data = await event.json()
+        pprint.pprint(data)
 
     @connector.close
     async def disconnect(connection):
